@@ -1,11 +1,22 @@
 import graphene
 from graphene import relay
 from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
-from database import db_session
-from models import News as NewsModel, User as UserModel
+from models import db_session, News as NewsModel, User as UserModel
+from mutations import CreateUser
 
 
-class News(SQLAlchemyObjectType):
+class UserNode(SQLAlchemyObjectType):
+    class Meta:
+        model = UserModel
+        interfaces = (relay.Node, )
+
+
+class UserConnection(relay.Connection):
+    class Meta:
+        node = UserNode
+
+
+class NewsNode(SQLAlchemyObjectType):
     class Meta:
         model = NewsModel
         interfaces = (relay.Node, )
@@ -13,25 +24,17 @@ class News(SQLAlchemyObjectType):
 
 class NewsConnection(relay.Connection):
     class Meta:
-        node = News
-
-
-# class createNews(graphene.Mutation):
-#     class Input:
-#         title = graphene.String()
-#         content = graphene.String()
-#     ok = graphene.Boolean()
-#     news = graphene.Field(News)
-
-#     @classmethod
-#     def mutate(cls, _, args, context, info):
-#         news = NewsModel(title=args.get('title'), content=args.get('content'))
-#         db_session.add(news)
+        node = NewsNode
 
 
 class Query(graphene.ObjectType):
     node = relay.Node.Field()
-    all_news = SQLAlchemyConnectionField(NewsConnection, sort=None)
+    all_users = SQLAlchemyConnectionField(UserConnection)
+    all_news = SQLAlchemyConnectionField(NewsConnection)
 
 
-schema = graphene.Schema(query=Query)
+class Mutations(graphene.ObjectType):
+    create_user = CreateUser.Field()
+
+
+schema = graphene.Schema(query=Query, mutation=Mutations)
