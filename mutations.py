@@ -20,27 +20,21 @@ def make_session_scope(Session=db_session):
         session.close()
 
 
-# class UserInput(graphene.InputObjectType):
-#     """Arguments to create a user."""
-#     username = graphene.String()
-#     email = graphene.String()
-
 class CreateUser(graphene.Mutation):
-    id = graphene.Int()
-    email = graphene.String()
-    username = graphene.String()
-    # User fileds
+    '''
+    Create user mutation
+    '''
 
     class Arguments:
         email = graphene.String(required=True)
         username = graphene.String(required=True)
 
     # return values
-    user = graphene.Field(lambda: UserObject)
+    user = graphene.Field(UserObject)
 
-    def mutate(self, info, email, username):
+    def mutate(self, info, **kwargs):
         with make_session_scope() as session:
-            user = User(email=email, username=username)
+            user = User(**kwargs)
             session.add(user)
             session.commit()
             return CreateUser(
